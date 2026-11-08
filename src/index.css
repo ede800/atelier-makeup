@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #faf7f5;
+  --bg-2: #f3ece7;
+  --surface: rgba(255, 255, 255, 0.66);
+  --surface-solid: #ffffff;
+  --ink: #1d1a19;
+  --muted: #6f6461;
+  --line: rgba(29, 26, 25, 0.09);
+  --gold: #d4a373;
+  --gold-ink: #9a6a3a;
+  --rose: #e5989b;
+  --rose-ink: #b5585c;
+  --sage: #7d9a7a;
+  --shadow: 0 1px 2px rgba(29, 26, 25, 0.04), 0 8px 32px -12px rgba(120, 80, 60, 0.18);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #121014;
+  --bg-2: #1a171c;
+  --surface: rgba(34, 29, 36, 0.62);
+  --surface-solid: #1d1a20;
+  --ink: #f3ece8;
+  --muted: #a99d9b;
+  --line: rgba(243, 236, 232, 0.09);
+  --gold-ink: #e2b88a;
+  --rose-ink: #eeaaae;
+  --sage: #9cb899;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 40px -16px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-display: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-surface: var(--surface);
+  --color-solid: var(--surface-solid);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
+  --color-rose: var(--rose);
+  --color-rose-ink: var(--rose-ink);
+  --color-sage: var(--sage);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(60rem 30rem at 10% -10%, color-mix(in srgb, var(--rose) 16%, transparent), transparent 70%),
+    radial-gradient(50rem 30rem at 100% 0%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 70%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+::selection { background: color-mix(in srgb, var(--rose) 40%, transparent); }
+
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.gold-text {
+  background: linear-gradient(120deg, var(--gold-ink), var(--gold) 45%, var(--rose-ink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.tier-s { background: linear-gradient(135deg, #e9c48f, #d4a373 50%, #b98552); color: #2a1a0c; }
+.tier-a { background: linear-gradient(135deg, #f1b7b9, #e5989b); color: #3b1517; }
+.tier-b { background: color-mix(in srgb, var(--ink) 10%, transparent); color: var(--ink); }
+.tier-x { background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--ink) 8%, transparent) 0 6px, transparent 6px 12px); color: var(--muted); border: 1px dashed var(--line); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: .375rem;
+  padding: .375rem .75rem; border-radius: 999px;
+  font-size: .8125rem; font-weight: 500;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  transition: all .18s ease;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.chip:hover { border-color: color-mix(in srgb, var(--gold) 60%, transparent); }
+.chip[data-active="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  padding: .625rem 1.1rem; border-radius: 999px; font-weight: 600; font-size: .875rem;
+  transition: transform .15s ease, background .2s ease, opacity .2s;
+  cursor: pointer;
+}
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--ink); color: var(--bg); }
+.btn-primary:hover { opacity: .88; }
+.btn-ghost { border: 1px solid var(--line); background: var(--surface); }
+.btn-ghost:hover { border-color: var(--gold); }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fade-up .45s cubic-bezier(.2, .7, .2, 1) both; }
+
+@keyframes pop {
+  from { opacity: 0; transform: translateY(8px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+.pop { animation: pop .22s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up, .pop { animation: none; }
+  html { scroll-behavior: auto; }
+}
+
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
