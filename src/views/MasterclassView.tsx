@@ -35,18 +35,20 @@ function UndertoneQuiz() {
     <div className="grid lg:grid-cols-[1fr_1.1fr] gap-6">
       <div className="glass rounded-3xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-display text-2xl">Le test des sous-tons</h3>
-          <span className="font-mono text-xs text-muted">{Math.min(answers.length + 1, UNDERTONE_QUIZ.length)}/{UNDERTONE_QUIZ.length}</span>
+          <h2 className="font-display text-2xl">Le test des sous-tons</h2>
+          <span className="font-mono text-xs text-muted" aria-hidden="true">{Math.min(answers.length + 1, UNDERTONE_QUIZ.length)}/{UNDERTONE_QUIZ.length}</span>
         </div>
-        <div className="h-1 rounded-full bg-line mb-6 overflow-hidden">
+        <div className="h-1 rounded-full bg-line mb-6 overflow-hidden" role="progressbar" aria-label="Progression du test" aria-valuemin={0} aria-valuemax={UNDERTONE_QUIZ.length} aria-valuenow={answers.length} aria-valuetext={`${answers.length} question${answers.length > 1 ? 's' : ''} sur ${UNDERTONE_QUIZ.length}`}>
           <div className="h-full bg-gold transition-all" style={{ width: `${(answers.length / UNDERTONE_QUIZ.length) * 100}%` }} />
         </div>
         {!done ? (
-          <div key={answers.length} className="pop">
-            <p className="text-lg leading-snug mb-4">{current.q}</p>
+          <fieldset key={answers.length} className="pop">
+            <legend className="text-lg leading-snug mb-4">
+              <span className="sr-only">Question {answers.length + 1} sur {UNDERTONE_QUIZ.length} : </span>{current.q}
+            </legend>
             <div className="grid gap-2">
               {current.options.map((o, i) => (
-                <button key={o.label} onClick={() => {
+                <button type="button" key={o.label} onClick={() => {
                   const next = [...answers, i];
                   setAnswers(next);
                   if (next.length === UNDERTONE_QUIZ.length) setProfile({ ...profile, undertone: computeUndertone(next) });
@@ -55,16 +57,16 @@ function UndertoneQuiz() {
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
         ) : (
-          <div className="pop text-center py-4">
+          <div className="pop text-center py-4" role="status">
             <p className="text-muted text-sm">Votre résultat</p>
             <p className="font-display text-3xl mt-1">{UNDERTONES[result!].title}</p>
             <p className="text-xs text-muted mt-2">Enregistré dans votre profil.</p>
           </div>
         )}
         {answers.length > 0 && (
-          <button className="btn btn-ghost mt-5" onClick={() => setAnswers([])}><RotateCcw size={14} /> Recommencer</button>
+          <button type="button" className="btn btn-ghost mt-5" onClick={() => setAnswers([])}><RotateCcw size={14} /> Recommencer</button>
         )}
       </div>
 
@@ -75,8 +77,8 @@ function UndertoneQuiz() {
           return (
             <div key={k} className={`glass rounded-2xl p-4 transition ${mine ? 'ring-2 ring-gold' : ''}`}>
               <div className="flex items-center gap-2">
-                <span className="size-6 rounded-full border border-line" style={{ background: u.color }} />
-                <h4 className="font-display text-lg">{u.title}</h4>
+                <span aria-hidden="true" className="size-6 rounded-full border border-line" style={{ background: u.color }} />
+                <h3 className="font-display text-lg">{u.title}</h3>
                 {mine && <span className="ml-auto text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-gold/25 text-gold-ink">Vous</span>}
               </div>
               <p className="text-[12.5px] text-muted mt-2 leading-relaxed">{u.description}</p>
@@ -86,7 +88,7 @@ function UndertoneQuiz() {
               </ul>
               <p className="text-[12px] mt-2"><span className="text-muted">Blush :</span> {u.blush}</p>
               <p className="text-[12px]"><span className="text-muted">Lèvres :</span> {u.lips}</p>
-              <p className="text-[12px] text-rose-ink mt-2">✕ {u.avoid}</p>
+              <p className="text-[12px] text-rose-ink mt-2"><span aria-hidden="true">✕ </span><span className="sr-only">À éviter : </span>{u.avoid}</p>
             </div>
           );
         })}
@@ -97,18 +99,21 @@ function UndertoneQuiz() {
 
 function ApplicationOrder() {
   return (
+    <>
+    <h2 className="sr-only">Ordre d'application en 12 étapes</h2>
     <ol className="relative grid md:grid-cols-2 gap-3">
       {APPLICATION_STEPS.map((s, i) => (
         <li key={s.step} className="glass rounded-2xl p-4 flex gap-4 fade-up" style={{ animationDelay: `${i * 30}ms` }}>
-          <span className="font-display text-3xl gold-text font-semibold w-10 shrink-0">{s.step}</span>
+          <span aria-hidden="true" className="font-display text-3xl gold-text font-semibold w-10 shrink-0">{s.step}</span>
           <div>
-            <h4 className="font-semibold">{s.title}</h4>
+            <h3 className="font-semibold">{s.title}</h3>
             <p className="text-[13px] text-muted leading-relaxed mt-1">{s.detail}</p>
             {s.wait && <p className="text-[11.5px] mt-2 inline-flex items-center gap-1 font-mono text-gold-ink"><Clock size={12} /> Temps de pose : {s.wait}</p>}
           </div>
         </li>
       ))}
     </ol>
+    </>
   );
 }
 
@@ -123,7 +128,7 @@ function Chemistry() {
   return (
     <div className="space-y-6">
       <div className="glass rounded-3xl p-6">
-        <h3 className="font-display text-2xl mb-2">Pourquoi mon fond de teint peluche ?</h3>
+        <h2 className="font-display text-2xl mb-2">Pourquoi mon fond de teint peluche ?</h2>
         <p className="leading-relaxed max-w-3xl">{FORMULATION_RULES.intro}</p>
         <p className="mt-3 text-sm text-muted max-w-3xl"><strong className="text-ink">Comment savoir ? </strong>{FORMULATION_RULES.howTo}</p>
       </div>
@@ -131,7 +136,7 @@ function Chemistry() {
       <div className="grid md:grid-cols-3 gap-3">
         {FORMULATION_RULES.families.map((f) => (
           <div key={f.name} className="glass rounded-2xl p-4">
-            <h4 className="font-semibold">{f.name}</h4>
+            <h3 className="font-semibold">{f.name}</h3>
             <p className="font-mono text-[11px] text-gold-ink mt-2 leading-relaxed">{f.inci}</p>
             <p className="text-[11px] uppercase tracking-wider text-muted mt-3 mb-1">Exemples</p>
             <ul className="text-[13px] space-y-0.5">{f.examples.map((e) => <li key={e}>• {e}</li>)}</ul>
@@ -140,18 +145,18 @@ function Chemistry() {
       </div>
 
       <div className="glass rounded-3xl p-6">
-        <h3 className="font-display text-xl mb-4">Le testeur de compatibilité</h3>
+        <h2 className="font-display text-xl mb-4">Le testeur de compatibilité</h2>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <p className="text-xs text-muted mb-2">Ma base / mon soin est à base de…</p>
-            <div className="flex gap-2 flex-wrap">{BASES.map((b) => <button key={b} className="chip" data-active={base === b} onClick={() => setBase(b)}>{b}</button>)}</div>
+            <p id="lbl-base" className="text-xs text-muted mb-2">Ma base / mon soin est à base de…</p>
+            <div role="group" aria-labelledby="lbl-base" className="flex gap-2 flex-wrap">{BASES.map((b) => <button type="button" key={b} className="chip" data-active={base === b} aria-pressed={base === b} onClick={() => setBase(b)}>{b}</button>)}</div>
           </div>
           <div>
-            <p className="text-xs text-muted mb-2">Mon fond de teint est à base de…</p>
-            <div className="flex gap-2 flex-wrap">{FDTS.map((b) => <button key={b} className="chip" data-active={fdt === b} onClick={() => setFdt(b)}>{b}</button>)}</div>
+            <p id="lbl-fdt" className="text-xs text-muted mb-2">Mon fond de teint est à base de…</p>
+            <div role="group" aria-labelledby="lbl-fdt" className="flex gap-2 flex-wrap">{FDTS.map((b) => <button type="button" key={b} className="chip" data-active={fdt === b} aria-pressed={fdt === b} onClick={() => setFdt(b)}>{b}</button>)}</div>
           </div>
         </div>
-        <div key={base + fdt} className={`pop mt-5 rounded-2xl p-4 flex items-center gap-3 ${rule.ok === 'oui' ? 'bg-sage/15' : rule.ok === 'non' ? 'bg-rose/15' : 'bg-gold/15'}`}>
+        <div key={base + fdt} role="status" className={`pop mt-5 rounded-2xl p-4 flex items-center gap-3 ${rule.ok === 'oui' ? 'bg-sage/15' : rule.ok === 'non' ? 'bg-rose/15' : 'bg-gold/15'}`}>
           <span className="grid place-items-center size-10 rounded-full bg-solid"><Icon size={18} /></span>
           <div>
             <p className="font-semibold">{rule.ok === 'oui' ? 'Compatible' : rule.ok === 'non' ? 'Incompatible' : 'Sous conditions'}</p>
@@ -160,12 +165,13 @@ function Chemistry() {
         </div>
         <div className="overflow-x-auto mt-5">
           <table className="w-full text-sm min-w-[420px]">
-            <thead><tr className="text-left text-[11px] uppercase tracking-wider text-muted border-b border-line"><th className="py-2">Base</th><th>Fond de teint</th><th>Verdict</th></tr></thead>
+            <caption className="sr-only">Compatibilité entre la base et le fond de teint selon leur solvant principal</caption>
+            <thead><tr className="text-left text-[11px] uppercase tracking-wider text-muted border-b border-line"><th scope="col" className="py-2">Base</th><th scope="col">Fond de teint</th><th scope="col">Verdict</th></tr></thead>
             <tbody>
               {FORMULATION_RULES.matrix.map((m) => (
                 <tr key={m.base + m.fdt} className="border-b border-line last:border-0">
                   <td className="py-2">{m.base}</td><td>{m.fdt}</td>
-                  <td>{m.ok === 'oui' ? '✅' : m.ok === 'non' ? '❌' : '⚠️'} <span className="text-muted">{m.note}</span></td>
+                  <td><span aria-hidden="true">{m.ok === 'oui' ? '✅' : m.ok === 'non' ? '❌' : '⚠️'} </span><strong className="font-medium">{m.ok === 'oui' ? 'Compatible' : m.ok === 'non' ? 'Incompatible' : 'Sous conditions'}</strong> <span className="text-muted">— {m.note}</span></td>
                 </tr>
               ))}
             </tbody>
@@ -178,19 +184,22 @@ function Chemistry() {
 
 function FaceShapes() {
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    <>
+    <h2 className="sr-only">Contour, blush et highlighter selon la forme du visage</h2>
+    <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {FACE_SHAPES.map((f) => (
-        <div key={f.name} className="glass rounded-2xl p-5">
-          <p className="text-3xl">{f.emoji}</p>
-          <h4 className="font-display text-xl mt-2">Visage {f.name}</h4>
+        <li key={f.name} className="glass rounded-2xl p-5">
+          <p className="text-3xl" aria-hidden="true">{f.emoji}</p>
+          <h3 className="font-display text-xl mt-2">Visage {f.name}</h3>
           <dl className="mt-3 space-y-2 text-[13px]">
             <div><dt className="text-[11px] uppercase tracking-wider text-muted">Contour</dt><dd>{f.contour}</dd></div>
             <div><dt className="text-[11px] uppercase tracking-wider text-muted">Blush</dt><dd>{f.blush}</dd></div>
             <div><dt className="text-[11px] uppercase tracking-wider text-muted">Highlighter</dt><dd>{f.highlight}</dd></div>
           </dl>
-        </div>
+        </li>
       ))}
-    </div>
+    </ul>
+    </>
   );
 }
 
@@ -198,13 +207,30 @@ export function MasterclassView() {
   const [tab, setTab] = useState<Tab>('undertone');
   return (
     <div>
-      <SectionTitle kicker="🎨 La Masterclass" title={<>Sous-tons, morphologie <em className="gold-text">& chimie des textures</em>.</>}>
+      <SectionTitle emoji="🎨" kicker="La Masterclass" title={<>Sous-tons, morphologie <em className="gold-text">& chimie des textures</em>.</>}>
         Ne plus jamais acheter un fond de teint orange ou gris, appliquer dans le bon ordre, et comprendre pourquoi certains produits peluchent.
       </SectionTitle>
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mb-6">
-        {TABS.map((t) => <button key={t.id} className="chip" data-active={tab === t.id} onClick={() => setTab(t.id)}><t.icon size={14} /> {t.label}</button>)}
+      <div role="tablist" aria-label="Chapitres de la masterclass" className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mb-6"
+        onKeyDown={(e) => {
+          const i = TABS.findIndex((t) => t.id === tab);
+          let next = -1;
+          if (e.key === 'ArrowRight') next = (i + 1) % TABS.length;
+          if (e.key === 'ArrowLeft') next = (i - 1 + TABS.length) % TABS.length;
+          if (e.key === 'Home') next = 0;
+          if (e.key === 'End') next = TABS.length - 1;
+          if (next < 0) return;
+          e.preventDefault();
+          setTab(TABS[next].id);
+          document.getElementById(`tab-${TABS[next].id}`)?.focus();
+        }}>
+        {TABS.map((t) => (
+          <button key={t.id} id={`tab-${t.id}`} type="button" role="tab" aria-selected={tab === t.id} aria-controls={`panel-${t.id}`}
+            tabIndex={tab === t.id ? 0 : -1} className="chip" data-active={tab === t.id} onClick={() => setTab(t.id)}>
+            <t.icon size={14} /> {t.label}
+          </button>
+        ))}
       </div>
-      <div key={tab} className="fade-up">
+      <div key={tab} id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} tabIndex={0} className="fade-up outline-none">
         {tab === 'undertone' && <UndertoneQuiz />}
         {tab === 'order' && <ApplicationOrder />}
         {tab === 'chemistry' && <Chemistry />}

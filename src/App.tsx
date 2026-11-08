@@ -1,5 +1,5 @@
 import { Moon, Search, ShoppingBag, Sun, Trophy, Wand2, Repeat, Library, Palette } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SearchPalette } from './components/SearchPalette';
 import { useStore, type ViewId } from './lib/store';
 import { TierListView } from './views/TierListView';
@@ -24,6 +24,7 @@ const NAV: { id: ViewId; label: string; short: string; icon: typeof Trophy }[] =
 export default function App() {
   const { nav, navigate, theme, toggleTheme, bag, toast } = useStore();
   const [search, setSearch] = useState(false);
+  const firstRender = useRef(true);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -36,48 +37,77 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Titre de page unique par vue, et focus déplacé sur le titre principal à chaque changement de vue
+  useEffect(() => {
+    document.title = `${TITLES[nav.view]} — L'Atelier Makeup`;
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    // Un lien profond (produit, fiche marque) gère son propre focus
+    if (nav.param && (nav.view === 'brands' || nav.param.includes('~'))) return;
+    requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-view-title]')?.focus({ preventScroll: true }));
+  }, [nav.view]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-40 border-b border-line bg-bg/75 backdrop-blur-xl">
+      <a href="#contenu" onClick={(e) => { e.preventDefault(); document.getElementById('contenu')?.focus(); }}
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[80] focus:px-4 focus:py-2 focus:rounded-full focus:bg-ink focus:text-bg focus:font-semibold">
+        Aller au contenu
+      </a>
+      <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center gap-3">
-          <button onClick={() => navigate('tier')} className="flex items-baseline gap-2 shrink-0" aria-label="Accueil">
+          <a href="#/tier" onClick={(e) => { e.preventDefault(); navigate('tier'); }} className="flex items-baseline gap-2 shrink-0" aria-label="L'Atelier Makeup — accueil">
             <span className="font-display text-xl sm:text-2xl italic">L'Atelier</span>
             <span className="font-display text-xl sm:text-2xl gold-text font-semibold">Makeup</span>
-          </button>
-          <nav className="hidden xl:flex items-center gap-1 ml-6" aria-label="Navigation principale">
-            {NAV.map((n) => (
-              <button key={n.id} onClick={() => navigate(n.id)} data-active={nav.view === n.id}
-                className="whitespace-nowrap px-3 py-2 rounded-full text-[13px] font-medium text-muted hover:text-ink data-[active=true]:text-ink data-[active=true]:bg-surface data-[active=true]:shadow-sm transition">
-                {n.label}
-              </button>
-            ))}
+          </a>
+          <nav className="hidden xl:block ml-6" aria-label="Navigation principale">
+            <ul className="flex items-center gap-1">
+              {NAV.map((n) => (
+                <li key={n.id}>
+                  <a href={`#/${n.id}`} aria-current={nav.view === n.id ? 'page' : undefined}
+                    className="block whitespace-nowrap px-3 py-2 rounded-full text-[13px] font-medium text-muted hover:text-ink aria-[current=page]:text-ink aria-[current=page]:bg-surface aria-[current=page]:shadow-sm transition">
+                    {n.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            <button onClick={() => setSearch(true)} className="flex items-center gap-2 h-9 pl-3 pr-2 rounded-full border border-line bg-surface text-muted text-sm hover:border-gold transition" aria-label="Rechercher (Ctrl+K)">
-              <Search size={15} />
-              <span className="hidden sm:inline">Rechercher</span>
-              <kbd className="hidden sm:inline font-mono text-[10px] border border-line rounded px-1.5 py-0.5">Ctrl K</kbd>
+            <button type="button" onClick={() => setSearch(true)} aria-haspopup="dialog" aria-keyshortcuts="Control+K"
+              className="flex items-center gap-2 h-10 pl-3 pr-2 rounded-full border border-line bg-surface text-muted text-sm hover:border-gold transition">
+              <Search size={15} aria-hidden="true" />
+              <span className="sr-only sm:not-sr-only">Rechercher</span>
+              <kbd className="hidden sm:inline font-mono text-[10px] border border-line rounded px-1.5 py-0.5" aria-hidden="true">Ctrl K</kbd>
             </button>
-            <button onClick={toggleTheme} className="grid place-items-center size-9 rounded-full border border-line bg-surface hover:border-gold transition" aria-label={theme === 'dark' ? 'Mode ivoire' : 'Mode Dark Velvet'}>
-              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            <button type="button" onClick={toggleTheme} aria-pressed={theme === 'dark'} aria-label="Mode sombre"
+              className="grid place-items-center size-10 rounded-full border border-line bg-surface hover:border-gold transition">
+              {theme === 'dark' ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
             </button>
-            <button onClick={() => navigate('bag')} data-active={nav.view === 'bag'} className="relative whitespace-nowrap flex items-center gap-2 h-9 px-3 rounded-full bg-ink text-bg text-sm font-semibold hover:opacity-90 transition" aria-label={`Ma Trousse (${bag.length})`}>
-              <ShoppingBag size={15} />
-              <span className="hidden sm:inline">Ma Trousse</span>
-              <span className="font-mono text-xs bg-gold text-[#2a1a0c] rounded-full min-w-5 h-5 px-1 grid place-items-center">{bag.length}</span>
-            </button>
+            <a href="#/bag" aria-current={nav.view === 'bag' ? 'page' : undefined}
+              className="relative whitespace-nowrap flex items-center gap-2 h-10 px-3 rounded-full bg-ink text-bg text-sm font-semibold hover:opacity-90 transition">
+              <ShoppingBag size={15} aria-hidden="true" />
+              <span className="sr-only sm:not-sr-only">Ma Trousse</span>
+              <span className="font-mono text-xs bg-gold text-[#2a1a0c] rounded-full min-w-5 h-5 px-1 grid place-items-center">
+                {bag.length}<span className="sr-only"> produit{bag.length > 1 ? 's' : ''}</span>
+              </span>
+            </a>
           </div>
         </div>
-        <nav className="xl:hidden flex gap-1 overflow-x-auto no-scrollbar px-4 pb-2" aria-label="Navigation mobile">
-          {NAV.map((n) => (
-            <button key={n.id} onClick={() => navigate(n.id)} data-active={nav.view === n.id} className="chip">
-              <n.icon size={14} /> {n.short}
-            </button>
-          ))}
+        <nav className="xl:hidden px-4 pb-2" aria-label="Navigation principale (mobile)">
+          <ul className="flex gap-1 overflow-x-auto no-scrollbar">
+            {NAV.map((n) => (
+              <li key={n.id}>
+                <a href={`#/${n.id}`} aria-current={nav.view === n.id ? 'page' : undefined} data-active={nav.view === n.id} className="chip">
+                  <n.icon size={14} aria-hidden="true" /> {n.short}
+                </a>
+              </li>
+            ))}
+          </ul>
         </nav>
       </header>
 
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 py-8 sm:py-12" key={nav.view}>
+      <main id="contenu" tabIndex={-1} className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 py-8 sm:py-12 outline-none" key={nav.view}>
         {nav.view === 'tier' && <TierListView param={nav.param} />}
         {nav.view === 'routine' && <RoutineBuilderView />}
         {nav.view === 'dupes' && <DupeFinderView />}
@@ -92,17 +122,27 @@ export default function App() {
             <span className="font-display italic text-base text-ink">L'Atelier Makeup</span> — La Bible & Tier-List du Maquillage.
             <span className="font-mono ml-2">{PRODUCTS.length} produits · {BRANDS.length} marques · {CATEGORIES.length} catégories · {DUPES.length} dupes</span>
           </p>
-          <p className="max-w-md">Prix indicatifs constatés en France (Sephora, Nocibé, Marionnaud, pharmacies, Monoprix). Classements éditoriaux indépendants, sans affiliation.</p>
+          <p className="max-w-md">
+            Prix indicatifs constatés en France (Sephora, Nocibé, Marionnaud, pharmacies, Monoprix). Classements éditoriaux indépendants, sans affiliation.
+            Les logos appartiennent à leurs marques respectives et sont utilisés à titre d'identification.
+          </p>
         </div>
       </footer>
 
       <SearchPalette open={search} onClose={() => setSearch(false)} />
 
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] pop">
-          <div className="px-4 py-2.5 rounded-full bg-ink text-bg text-sm font-medium shadow-xl">{toast}</div>
-        </div>
-      )}
+      <div role="status" aria-live="polite" className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70]">
+        {toast && <div className="pop px-4 py-2.5 rounded-full bg-ink text-bg text-sm font-medium shadow-xl">{toast}</div>}
+      </div>
     </div>
   );
 }
+
+const TITLES: Record<ViewId, string> = {
+  tier: 'Le Grand Ranking & Tier-List',
+  routine: 'Générateur de Trousse',
+  dupes: 'Radar à Dupes',
+  brands: 'Encyclopédie des Marques',
+  masterclass: 'Masterclass',
+  bag: 'Ma Trousse',
+};

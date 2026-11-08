@@ -11,10 +11,12 @@
   --muted: #6f6461;
   --line: rgba(29, 26, 25, 0.09);
   --gold: #d4a373;
-  --gold-ink: #9a6a3a;
+  --gold-ink: #87592b;
+  --gold-mid: #9e6c3a;
   --rose: #e5989b;
-  --rose-ink: #b5585c;
+  --rose-ink: #9e4448;
   --sage: #7d9a7a;
+  --sage-ink: #4e6b4b;
   --shadow: 0 1px 2px rgba(29, 26, 25, 0.04), 0 8px 32px -12px rgba(120, 80, 60, 0.18);
   color-scheme: light;
 }
@@ -28,8 +30,10 @@
   --muted: #a99d9b;
   --line: rgba(243, 236, 232, 0.09);
   --gold-ink: #e2b88a;
+  --gold-mid: #d4a373;
   --rose-ink: #eeaaae;
   --sage: #9cb899;
+  --sage-ink: #9cb899;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 40px -16px rgba(0, 0, 0, 0.6);
   color-scheme: dark;
 }
@@ -50,6 +54,7 @@
   --color-rose: var(--rose);
   --color-rose-ink: var(--rose-ink);
   --color-sage: var(--sage);
+  --color-sage-ink: var(--sage-ink);
 }
 
 html { scroll-behavior: smooth; }
@@ -78,7 +83,7 @@ body {
 }
 
 .gold-text {
-  background: linear-gradient(120deg, var(--gold-ink), var(--gold) 45%, var(--rose-ink));
+  background: linear-gradient(120deg, var(--gold-ink), var(--gold-mid) 45%, var(--rose-ink));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
