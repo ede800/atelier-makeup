@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { SkinType } from '../data/types';
 import type { Undertone } from '../data/masterclass';
 
-export type ViewId = 'tier' | 'routine' | 'dupes' | 'brands' | 'masterclass' | 'bag';
+export type ViewId = 'tier' | 'routine' | 'shades' | 'dupes' | 'brands' | 'masterclass' | 'bag';
 
 export interface Profile {
   skin?: SkinType;
@@ -52,7 +52,7 @@ export function usePersistent<T>(key: string, initial: T) {
   return [value, setValue] as const;
 }
 
-const VIEWS: ViewId[] = ['tier', 'routine', 'dupes', 'brands', 'masterclass', 'bag'];
+const VIEWS: ViewId[] = ['tier', 'routine', 'shades', 'dupes', 'brands', 'masterclass', 'bag'];
 
 function readHash(): Nav {
   const [view, param] = window.location.hash.replace(/^#\/?/, '').split('/');

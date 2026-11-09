@@ -1,4 +1,6 @@
 import type { Brand, MarketTier } from './types';
+import { BRANDS_EXTRA } from './brands-extra';
+import { BRAND_VERDICTS } from './brand-verdicts';
 
 export const MARKET_TIERS: Record<MarketTier, { label: string; short: string; emoji: string; range: string }> = {
   drugstore: { label: 'Petit Budget / Drugstore', short: 'Drugstore', emoji: '🟢', range: '< 15 €' },
@@ -22,7 +24,7 @@ function b(
   return { id, name, tier, country, priceRange, specialty, dna, legends, flops, shops };
 }
 
-export const BRANDS: Brand[] = [
+const BASE_BRANDS: Brand[] = [
   // ——— 🟢 DRUGSTORE
   b('nyx', 'NYX Professional Makeup', 'drugstore', '🇺🇸 États-Unis', '6 – 18 €', 'Lèvres, gels sourcils, bases gripping',
     "Née à Los Angeles en 1999, NYX démocratise les codes des maquilleurs pros. Ses crayons à lèvres et ses produits sourcils rivalisent avec le prestige.",
@@ -304,6 +306,11 @@ export const BRANDS: Brand[] = [
     "Les pinceaux synthétiques de qualité professionnelle à prix raisonnable, plébiscités par les maquilleurs.",
     ['F80 Flat Kabuki', 'E25 Blending Brush', 'Essential Kit'],
     "Les fards et le maquillage en général : restez sur les pinceaux.", ['sigmabeauty.com', 'Amazon']),
+];
+
+export const BRANDS: Brand[] = [
+  ...BASE_BRANDS.map((br) => ({ ...br, proVerdict: BRAND_VERDICTS[br.id] })),
+  ...BRANDS_EXTRA,
 ];
 
 export const brandById = (id: string): Brand | undefined => BRANDS.find((br) => br.id === id);

@@ -4,7 +4,8 @@ import { brandById, brandName } from '../data/brands';
 import LOGOS from '../data/logos.json';
 import { totalScore } from '../data/products';
 import type { Product, Scores, Tier } from '../data/types';
-import { LEVEL_LABELS, SKIN_LABELS, TIER_META, euro, priceLevel, unitPrice } from '../lib/helpers';
+import { LEVEL_LABELS, SKIN_LABELS, TIER_META, euro, priceLevel } from '../lib/helpers';
+import { BASE_LABELS, detailsOf, pricePer10 } from '../data/product-details';
 import { useStore } from '../lib/store';
 
 const LOGO_FILES = LOGOS as Record<string, string>;
@@ -132,7 +133,8 @@ export function ProductActions({ id, name }: { id: string; name: string }) {
 export function ProductCard({ p, highlight, showScores = true, headingLevel = 4 }: { p: Product; highlight?: boolean; showScores?: boolean; headingLevel?: 3 | 4 | 5 }) {
   const { profile } = useStore();
   const lvl = LEVEL_LABELS[priceLevel(p)];
-  const up = unitPrice(p);
+  const up = pricePer10(p)?.label;
+  const det = detailsOf(p);
   const skinOk = !profile.skin || p.skin.includes(profile.skin);
   const H = `h${headingLevel}` as 'h3' | 'h4' | 'h5';
   return (
@@ -159,6 +161,8 @@ export function ProductCard({ p, highlight, showScores = true, headingLevel = 4 
         <span className="text-[11px] text-muted ml-auto"><span aria-hidden="true">{lvl.emoji} </span>{lvl.label}</span>
       </p>
       <p className="text-[13px] leading-relaxed text-muted">{p.verdict}</p>
+      {det.iconicShades && <p className="text-[12px]"><span className="text-muted">Teintes cultes :</span> {det.iconicShades}</p>}
+      <Badges p={p} />
       {showScores && <ScoreBars scores={p.scores} compact />}
       <ul className="flex flex-wrap gap-1" aria-label="Fini et types de peau">
         <li className="text-[10.5px] px-2 py-0.5 rounded-full bg-gold/15 text-gold-ink">Fini : {p.finish}</li>
@@ -175,6 +179,25 @@ export function ProductCard({ p, highlight, showScores = true, headingLevel = 4 
         <ProductActions id={p.id} name={`${brandName(p.brand)} ${p.name}`} />
       </div>
     </article>
+  );
+}
+
+/** Badges techniques : format mini, base de formule, allégations peau. */
+export function Badges({ p }: { p: Product }) {
+  const det = detailsOf(p);
+  const items: { label: string; cls: string }[] = [];
+  if (det.mini) items.push({ label: `Mini dispo : ${euro(det.mini.price)} · ${det.mini.size}`, cls: 'bg-sage/20 text-sage-ink' });
+  if (det.baseType && det.baseType !== 'powder') items.push({ label: `Base ${BASE_LABELS[det.baseType].toLowerCase()}`, cls: 'border border-line' });
+  if (det.acneSafe) items.push({ label: 'Non comédogène', cls: 'bg-sage/20 text-sage-ink' });
+  if (det.fragranceFree === true) items.push({ label: 'Sans parfum', cls: 'bg-sage/20 text-sage-ink' });
+  if (det.fragranceFree === false) items.push({ label: 'Parfumé', cls: 'border border-line text-muted' });
+  if (det.talcFree === true) items.push({ label: 'Sans talc', cls: 'border border-line' });
+  if (det.talcFree === false) items.push({ label: 'Contient du talc', cls: 'border border-line text-muted' });
+  if (!items.length) return null;
+  return (
+    <ul className="flex flex-wrap gap-1" aria-label="Infos techniques">
+      {items.map((i) => <li key={i.label} className={`text-[10.5px] px-2 py-0.5 rounded-full font-medium ${i.cls}`}>{i.label}</li>)}
+    </ul>
   );
 }
 

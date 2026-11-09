@@ -6,4 +6,6 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/atelier-makeup/' : '/',
   plugins: [react(), tailwindcss()],
+  // Le catalogue (242 produits, 123 marques) est volontairement embarqué dans un seul bundle.
+  build: { chunkSizeWarningLimit: 800 },
 }));

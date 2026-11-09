@@ -1,16 +1,21 @@
-import { FlaskConical, ListOrdered, Palette, ScanFace, RotateCcw, Check, X, AlertTriangle, Clock } from 'lucide-react';
+import { FlaskConical, ListOrdered, Palette, ScanFace, RotateCcw, Check, X, AlertTriangle, Clock, Pipette, Sparkles, LifeBuoy, Microscope } from 'lucide-react';
 import { useState } from 'react';
-import { APPLICATION_STEPS, FACE_SHAPES, FORMULATION_RULES, UNDERTONES, UNDERTONE_QUIZ, type Undertone } from '../data/masterclass';
+import { APPLICATION_STEPS, FORMULATION_RULES, UNDERTONES, UNDERTONE_QUIZ, type Undertone } from '../data/masterclass';
 import { useStore } from '../lib/store';
 import { SectionTitle } from '../components/ui';
+import { ColorLab, InciPao, Morphology, ProTips, Troubleshooting } from './masterclass/Panels';
 
-type Tab = 'undertone' | 'order' | 'chemistry' | 'shape';
+type Tab = 'undertone' | 'lab' | 'order' | 'chemistry' | 'shape' | 'tips' | 'sos' | 'inci';
 
 const TABS: { id: Tab; label: string; icon: typeof Palette }[] = [
   { id: 'undertone', label: 'Sous-tons', icon: Palette },
+  { id: 'lab', label: 'Labo couleurs', icon: Pipette },
+  { id: 'shape', label: 'Morphologie', icon: ScanFace },
   { id: 'order', label: "Ordre d'application", icon: ListOrdered },
   { id: 'chemistry', label: 'Chimie des textures', icon: FlaskConical },
-  { id: 'shape', label: 'Morphologie', icon: ScanFace },
+  { id: 'tips', label: 'Secrets backstage', icon: Sparkles },
+  { id: 'sos', label: 'Diagnostic SOS', icon: LifeBuoy },
+  { id: 'inci', label: 'INCI & péremption', icon: Microscope },
 ];
 
 function computeUndertone(answers: number[]): Undertone {
@@ -182,33 +187,12 @@ function Chemistry() {
   );
 }
 
-function FaceShapes() {
-  return (
-    <>
-    <h2 className="sr-only">Contour, blush et highlighter selon la forme du visage</h2>
-    <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {FACE_SHAPES.map((f) => (
-        <li key={f.name} className="glass rounded-2xl p-5">
-          <p className="text-3xl" aria-hidden="true">{f.emoji}</p>
-          <h3 className="font-display text-xl mt-2">Visage {f.name}</h3>
-          <dl className="mt-3 space-y-2 text-[13px]">
-            <div><dt className="text-[11px] uppercase tracking-wider text-muted">Contour</dt><dd>{f.contour}</dd></div>
-            <div><dt className="text-[11px] uppercase tracking-wider text-muted">Blush</dt><dd>{f.blush}</dd></div>
-            <div><dt className="text-[11px] uppercase tracking-wider text-muted">Highlighter</dt><dd>{f.highlight}</dd></div>
-          </dl>
-        </li>
-      ))}
-    </ul>
-    </>
-  );
-}
-
 export function MasterclassView() {
   const [tab, setTab] = useState<Tab>('undertone');
   return (
     <div>
-      <SectionTitle emoji="🎨" kicker="La Masterclass" title={<>Sous-tons, morphologie <em className="gold-text">& chimie des textures</em>.</>}>
-        Ne plus jamais acheter un fond de teint orange ou gris, appliquer dans le bon ordre, et comprendre pourquoi certains produits peluchent.
+      <SectionTitle emoji="🎨" kicker="La Masterclass" title={<>Sous-tons, couleurs, morphologie <em className="gold-text">& secrets de pros</em>.</>}>
+        Trouver son sous-ton, sauver une teinte ratée, placer chaque produit selon son visage, et comprendre pourquoi un maquillage rate.
       </SectionTitle>
       <div role="tablist" aria-label="Chapitres de la masterclass" className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mb-6"
         onKeyDown={(e) => {
@@ -234,7 +218,11 @@ export function MasterclassView() {
         {tab === 'undertone' && <UndertoneQuiz />}
         {tab === 'order' && <ApplicationOrder />}
         {tab === 'chemistry' && <Chemistry />}
-        {tab === 'shape' && <FaceShapes />}
+        {tab === 'shape' && <Morphology />}
+        {tab === 'lab' && <ColorLab />}
+        {tab === 'tips' && <ProTips />}
+        {tab === 'sos' && <Troubleshooting />}
+        {tab === 'inci' && <InciPao />}
       </div>
     </div>
   );

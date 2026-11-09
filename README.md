@@ -1,6 +1,6 @@
 # L'Atelier Makeup — La Bible & Tier-List du Maquillage
 
-Guide interactif en français : tier-list de 175 produits sur 28 catégories, générateur de trousse par budget et type de peau, radar à dupes, encyclopédie de 68 marques et masterclass (sous-tons, ordre d'application, chimie des textures).
+Guide interactif en français : tier-list de 242 produits sur 28 catégories, générateur de trousse par budget et type de peau avec analyseur anti-peluchage, convertisseur de teintes inter-marques (18 références), radar à 43 dupes, encyclopédie de 123 marques, et masterclass (sous-tons, labo de correction des couleurs, schémas SVG visage et yeux, 35 secrets backstage, diagnostic SOS, INCI et péremption). Ma Trousse : duel de 2-3 produits (prix réel au 10 ml, formats mini, base eau/silicone) et suivi PAO.
 
 **Site :** https://ede800.github.io/atelier-makeup/
 
@@ -32,4 +32,4 @@ Objectif : WCAG 2.2 niveau AA (référentiel RGAA). Mis en place :
 - Navigation complète au clavier : boîtes de dialogue avec focus piégé, fermeture par Échap et retour du focus ; recherche `Ctrl+K` en combobox ARIA ; onglets de la masterclass navigables aux flèches.
 - Boutons à bascule (`aria-pressed`), page courante (`aria-current`), annonces des résultats de filtres et des notifications (`aria-live`).
 - Contrastes de texte ≥ 4,5:1 (≥ 3:1 pour les grands titres) en mode clair et sombre, `prefers-reduced-motion` respecté, emojis et icônes décoratifs masqués aux lecteurs d'écran, tableaux avec en-têtes et légendes.
-- Vérifié avec axe-core (`wcag2a`, `wcag2aa`, `wcag21aa`, `wcag22aa`, bonnes pratiques) : 0 violation sur 18 écrans, en clair et en sombre.
+- Vérifié avec axe-core (`wcag2a`, `wcag2aa`, `wcag21aa`, `wcag22aa`, bonnes pratiques) : 0 violation sur toutes les vues et les 8 onglets de la masterclass, en clair et en sombre.

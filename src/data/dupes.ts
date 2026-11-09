@@ -1,4 +1,5 @@
 import type { Dupe } from './types';
+import { DUPES_EXTRA } from './dupes-extra';
 
 const d = (
   id: string, category: string,
@@ -6,7 +7,7 @@ const d = (
   similarity: number, verdict: string, tradeoffs: string[], alt?: string,
 ): Dupe => ({ id, category, luxe, dupe, similarity, verdict, tradeoffs, alt });
 
-export const DUPES: Dupe[] = [
+const BASE_DUPES: Dupe[] = [
   d('flawless-filter', 'primer-glow',
     { name: 'Hollywood Flawless Filter', brand: 'ct', price: 49, size: '30 ml', productId: 'ct-flawless-filter' },
     { name: 'Halo Glow Liquid Filter', brand: 'elf', price: 16, size: '31,5 ml', productId: 'elf-halo-glow' },
@@ -152,3 +153,5 @@ export const DUPES: Dupe[] = [
     ['Huda s\'estompe beaucoup plus facilement', 'Revolution : plus de retombées (posez les yeux avant le teint)', '-78 % pour 6 fards de plus'],
   ),
 ];
+
+export const DUPES: Dupe[] = [...BASE_DUPES, ...DUPES_EXTRA];

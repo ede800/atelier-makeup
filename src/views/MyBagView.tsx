@@ -1,15 +1,16 @@
-import { Download, Copy, Trash2, GitCompare, Heart, ShoppingBag, UserRound, ArrowRight } from 'lucide-react';
+import { Download, Copy, Trash2, Swords, Heart, ShoppingBag, UserRound, ArrowRight, Timer, X } from 'lucide-react';
 import { useState } from 'react';
 import { brandName } from '../data/brands';
 import { CATEGORIES, ZONES, categoryById } from '../data/categories';
+import { PAO_BY_CATEGORY } from '../data/inci';
 import { UNDERTONES } from '../data/masterclass';
+import { BASE_LABELS, detailsOf, pricePer10 } from '../data/product-details';
 import { productById, totalScore } from '../data/products';
-import type { Product, Scores, SkinType } from '../data/types';
-import { SKIN_LABELS, euro, unitPrice } from '../lib/helpers';
-import { useStore } from '../lib/store';
-import { BrandLogo, ScoreRing, SectionTitle, TierBadge } from '../components/ui';
-
-const SCORE_KEYS: [keyof Scores, string][] = [['tenue', 'Tenue'], ['pigment', 'Pigmentation / Fini'], ['confort', 'Confort peau'], ['valeur', 'Rapport qualité/prix']];
+import type { Product, SkinType } from '../data/types';
+import { SKIN_LABELS, euro } from '../lib/helpers';
+import { usePersistent, useStore } from '../lib/store';
+import { BrandLogo, ScoreRing, SectionTitle, Sheet, TierBadge } from '../components/ui';
+import { LayerCompatibility } from '../components/LayerCompatibility';
 
 function exportText(items: Product[]) {
   const lines = ["L'ATELIER MAKEUP — Ma liste de courses", `Générée le ${new Date().toLocaleDateString('fr-FR')}`, ''];
@@ -24,42 +25,128 @@ function exportText(items: Product[]) {
   return lines.join('\n');
 }
 
-function Compare({ a, b }: { a: Product; b: Product }) {
-  const rows: [string, string, string, number][] = [
-    ['Prix', euro(a.price), euro(b.price), Math.sign(b.price - a.price)],
-    ['Format', a.size, b.size, 0],
-    ['Prix au ml/g', unitPrice(a) ?? '—', unitPrice(b) ?? '—', 0],
-    ['Score global', `${totalScore(a)}/100`, `${totalScore(b)}/100`, Math.sign(totalScore(a) - totalScore(b))],
-    ...SCORE_KEYS.map(([k, l]) => [l, `${a.scores[k]}`, `${b.scores[k]}`, Math.sign(a.scores[k] - b.scores[k])] as [string, string, string, number]),
-    ['Fini', a.finish, b.finish, 0],
-    ['Peaux', a.skin.map((s) => SKIN_LABELS[s]).join(', '), b.skin.map((s) => SKIN_LABELS[s]).join(', '), 0],
+// ——— Duel côte à côte (2 ou 3 produits)
+type Row = { label: string; values: string[]; best?: number[] };
+const yesNo = (v?: boolean) => (v === true ? 'Oui' : v === false ? 'Non' : 'Non communiqué');
+
+function bestIdx(nums: (number | null)[], higher: boolean): number[] {
+  const valid = nums.filter((n): n is number => n !== null);
+  if (valid.length < 2) return [];
+  const target = higher ? Math.max(...valid) : Math.min(...valid);
+  if (valid.every((n) => n === target)) return [];
+  return nums.map((n, i) => (n === target ? i : -1)).filter((i) => i >= 0);
+}
+
+function Duel({ items }: { items: Product[] }) {
+  const det = items.map(detailsOf);
+  const p10 = items.map((p) => pricePer10(p));
+  const rows: Row[] = [
+    { label: 'Score global', values: items.map((p) => `${totalScore(p)}/100`), best: bestIdx(items.map(totalScore), true) },
+    { label: 'Prix', values: items.map((p) => euro(p.price)), best: bestIdx(items.map((p) => p.price), false) },
+    { label: 'Format', values: items.map((p) => p.size) },
+    { label: 'Prix réel / 10 ml ou g', values: p10.map((x) => x?.label ?? '—'), best: bestIdx(p10.map((x) => x?.value ?? null), false) },
+    { label: 'Format mini', values: det.map((d) => (d.mini ? `${euro(d.mini.price)} · ${d.mini.size}` : 'Non')) },
+    { label: 'Base de formule', values: det.map((d) => (d.baseType ? BASE_LABELS[d.baseType] : '—')) },
+    { label: 'Fini', values: items.map((p) => p.finish) },
+    { label: 'Tenue', values: items.map((p) => `${p.scores.tenue}`), best: bestIdx(items.map((p) => p.scores.tenue), true) },
+    { label: 'Pigmentation / fini', values: items.map((p) => `${p.scores.pigment}`), best: bestIdx(items.map((p) => p.scores.pigment), true) },
+    { label: 'Confort', values: items.map((p) => `${p.scores.confort}`), best: bestIdx(items.map((p) => p.scores.confort), true) },
+    { label: 'Rapport qualité/prix', values: items.map((p) => `${p.scores.valeur}`), best: bestIdx(items.map((p) => p.scores.valeur), true) },
+    { label: 'Non comédogène', values: det.map((d) => yesNo(d.acneSafe)) },
+    { label: 'Sans parfum', values: det.map((d) => yesNo(d.fragranceFree)) },
+    { label: 'Sans talc', values: det.map((d) => yesNo(d.talcFree)) },
+    { label: 'Peaux', values: items.map((p) => p.skin.map((s) => SKIN_LABELS[s]).join(', ')) },
   ];
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm min-w-[520px]">
-        <caption className="sr-only">Comparaison de {a.name} et {b.name} ; la meilleure valeur de chaque ligne est mise en avant</caption>
-        <thead>
-          <tr className="border-b border-line">
-            <td className="w-40" />
-            {[a, b].map((p) => (
-              <th key={p.id} scope="col" className="text-left p-3 align-top">
-                <span className="block text-[11px] uppercase tracking-wider text-muted font-normal">{brandName(p.brand)}</span>
-                <span className="font-display text-lg font-normal">{p.name}</span> <TierBadge tier={p.tier} />
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(([l, va, vb, w]) => (
-            <tr key={l} className="border-b border-line last:border-0">
-              <th scope="row" className="p-3 text-muted text-[12.5px] text-left font-normal">{l}</th>
-              <td className={`p-3 font-mono text-[13px] ${w > 0 ? 'text-sage-ink font-semibold' : ''}`}>{va}{w > 0 && <span className="sr-only"> (meilleur)</span>}</td>
-              <td className={`p-3 font-mono text-[13px] ${w < 0 ? 'text-sage-ink font-semibold' : ''}`}>{vb}{w < 0 && <span className="sr-only"> (meilleur)</span>}</td>
+    <div className="p-5 sm:p-8">
+      <h2 className="font-display text-3xl pr-12">Le duel</h2>
+      <p className="text-sm text-muted mt-1">La meilleure valeur de chaque ligne est surlignée.</p>
+      <div className="overflow-x-auto mt-5" tabIndex={0} role="region" aria-label="Tableau de comparaison">
+        <table className="w-full text-sm min-w-[560px]">
+          <caption className="sr-only">Comparaison de {items.map((p) => p.name).join(', ')}</caption>
+          <thead>
+            <tr className="border-b border-line">
+              <td className="w-40" />
+              {items.map((p) => (
+                <th key={p.id} scope="col" className="text-left p-3 align-top font-normal">
+                  <span className="flex items-center gap-2"><BrandLogo brand={p.brand} size={28} /><span className="text-[11px] uppercase tracking-wider text-muted">{brandName(p.brand)}</span></span>
+                  <span className="font-display text-lg block mt-1">{p.name}</span> <TierBadge tier={p.tier} />
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.label} className="border-b border-line last:border-0">
+                <th scope="row" className="p-3 text-muted text-[12.5px] text-left font-normal">{r.label}</th>
+                {r.values.map((v, i) => {
+                  const best = r.best?.includes(i);
+                  return (
+                    <td key={i} className={`p-3 font-mono text-[13px] ${best ? 'text-sage-ink font-semibold bg-sage/10' : ''}`}>
+                      {v}{best && <span className="sr-only"> (meilleur)</span>}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
+  );
+}
+
+// ——— Suivi PAO
+interface PaoEntry { opened: string; months: number }
+const thisMonth = () => new Date().toISOString().slice(0, 7);
+function expiry(e: PaoEntry) {
+  const [y, m] = e.opened.split('-').map(Number);
+  const end = new Date(y, m - 1 + e.months, 1);
+  const now = new Date();
+  const monthsLeft = (end.getFullYear() - now.getFullYear()) * 12 + (end.getMonth() - now.getMonth());
+  return { end, monthsLeft, status: monthsLeft < 0 ? 'expired' : monthsLeft <= 1 ? 'soon' : 'ok' } as const;
+}
+const PAO_STATUS = {
+  ok: { label: 'En bon état', cls: 'bg-sage/20 text-sage-ink' },
+  soon: { label: 'À finir ce mois-ci', cls: 'bg-gold/25 text-gold-ink' },
+  expired: { label: 'Périmé : à jeter', cls: 'bg-rose/20 text-rose-ink' },
+};
+
+function PaoControl({ p, entry, onChange }: { p: Product; entry?: PaoEntry; onChange: (e: PaoEntry | undefined) => void }) {
+  if (!entry) {
+    return (
+      <button type="button" className="chip !py-1.5 text-xs" onClick={() => onChange({ opened: thisMonth(), months: PAO_BY_CATEGORY[p.category] ?? 12 })}>
+        <Timer size={13} /> Ouvert ce mois-ci<span className="sr-only"> : {p.name}</span>
+      </button>
+    );
+  }
+  const ex = expiry(entry);
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-xs w-full sm:w-auto">
+      <label className="flex items-center gap-1">
+        <span className="text-muted">Ouvert</span>
+        <input type="month" value={entry.opened} max={thisMonth()} onChange={(e) => e.target.value && onChange({ ...entry, opened: e.target.value })}
+          className="rounded-lg border border-line bg-solid px-2 py-1 font-mono" aria-label={`Mois d'ouverture de ${p.name}`} />
+      </label>
+      <label className="flex items-center gap-1">
+        <span className="text-muted">PAO</span>
+        <select value={entry.months} onChange={(e) => onChange({ ...entry, months: Number(e.target.value) })} className="rounded-lg border border-line bg-solid px-2 py-1 font-mono" aria-label={`Durée après ouverture de ${p.name}`}>
+          {[3, 6, 12, 18, 24].map((m) => <option key={m} value={m}>{m}M</option>)}
+        </select>
+      </label>
+      <span className={`px-2 py-1 rounded-full font-semibold ${PAO_STATUS[ex.status].cls}`}>
+        {PAO_STATUS[ex.status].label} · {ex.end.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}
+      </span>
+      <button type="button" onClick={() => onChange(undefined)} className="grid place-items-center size-7 rounded-full border border-line" aria-label={`Arrêter le suivi de ${p.name}`}><X size={12} /></button>
+    </div>
+  );
+}
+
+function CmpButton({ p, active, onToggle }: { p: Product; active: boolean; onToggle: () => void }) {
+  return (
+    <button type="button" onClick={onToggle} data-active={active} aria-pressed={active} className="chip !py-1.5 text-xs">
+      <Swords size={13} /> Duel<span className="sr-only"> : {p.name}</span>
+    </button>
   );
 }
 
@@ -68,12 +155,22 @@ export function MyBagView() {
   const items = bag.map(productById).filter((p): p is Product => !!p);
   const wished = wishlist.map(productById).filter((p): p is Product => !!p);
   const [cmp, setCmp] = useState<string[]>([]);
+  const [duelOpen, setDuelOpen] = useState(false);
+  const [pao, setPao] = usePersistent<Record<string, PaoEntry>>('atelier.pao', {});
   const total = items.reduce((s, p) => s + p.price, 0);
   const avg = items.length ? Math.round(items.reduce((s, p) => s + totalScore(p), 0) / items.length) : 0;
   const coveredCats = new Set(items.map((p) => p.category)).size;
+  const tracked = items.filter((p) => pao[p.id]).map((p) => ({ p, ex: expiry(pao[p.id]) }));
+  const expired = tracked.filter((t) => t.ex.status === 'expired');
+  const soon = tracked.filter((t) => t.ex.status === 'soon');
 
-  const toggleCmp = (id: string) => setCmp((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c.slice(-1), id]));
+  const toggleCmp = (id: string) => setCmp((c) => (c.includes(id) ? c.filter((x) => x !== id) : c.length >= 3 ? [...c.slice(1), id] : [...c, id]));
   const cmpProducts = cmp.map(productById).filter((p): p is Product => !!p);
+  const setEntry = (id: string, e?: PaoEntry) => {
+    const next = { ...pao };
+    if (e) next[id] = e; else delete next[id];
+    setPao(next);
+  };
 
   const download = () => {
     const blob = new Blob([exportText(items)], { type: 'text/plain;charset=utf-8' });
@@ -96,7 +193,7 @@ export function MyBagView() {
   return (
     <div>
       <SectionTitle emoji="👜" kicker="Ma Trousse & Comparateur" title={<>Votre trousse, <em className="gold-text">composée avec soin</em>.</>}>
-        Ajoutez des produits depuis le Ranking, les Dupes ou le Générateur. Comparez-en deux côte à côte, puis exportez votre liste de courses.
+        Comparez 2 ou 3 produits côte à côte, vérifiez que vos bases ne peluchent pas, et suivez la date d'ouverture de chaque produit.
       </SectionTitle>
 
       <div className="grid lg:grid-cols-[1fr_340px] gap-6">
@@ -107,6 +204,14 @@ export function MyBagView() {
             <div><dt className="text-xs text-muted">Score moyen</dt><dd className="font-mono text-2xl font-semibold">{avg}<span className="text-sm text-muted"> /100</span></dd></div>
             <div><dt className="text-xs text-muted">Catégories couvertes</dt><dd className="font-mono text-2xl font-semibold">{coveredCats}<span className="text-sm text-muted"> /{CATEGORIES.length}</span></dd></div>
           </dl>
+
+          {(expired.length > 0 || soon.length > 0) && (
+            <div className="rounded-2xl border border-rose/40 bg-rose/10 p-4 text-sm" role="status">
+              <p className="font-semibold flex items-center gap-2"><Timer size={16} /> Hygiène</p>
+              {expired.length > 0 && <p className="mt-1">À jeter : {expired.map((t) => t.p.name).join(', ')}.</p>}
+              {soon.length > 0 && <p className="mt-1">À finir ce mois-ci : {soon.map((t) => t.p.name).join(', ')}.</p>}
+            </div>
+          )}
 
           {items.length === 0 ? (
             <div className="glass rounded-3xl p-10 text-center">
@@ -142,8 +247,9 @@ export function MyBagView() {
                           </a>
                           <TierBadge tier={p.tier} />
                           <span className="font-mono text-sm">{euro(p.price)}</span>
-                          <button type="button" onClick={() => toggleCmp(p.id)} data-active={cmp.includes(p.id)} aria-pressed={cmp.includes(p.id)} className="chip !py-1.5 text-xs"><GitCompare size={13} /> Comparer<span className="sr-only"> {p.name}</span></button>
+                          <CmpButton p={p} active={cmp.includes(p.id)} onToggle={() => toggleCmp(p.id)} />
                           <button type="button" onClick={() => toggleBag(p.id)} className="grid place-items-center size-9 rounded-full border border-line hover:border-rose hover:text-rose-ink" aria-label={`Retirer ${p.name} de la trousse`}><Trash2 size={14} /></button>
+                          <div className="basis-full pl-0 sm:pl-[86px]"><PaoControl p={p} entry={pao[p.id]} onChange={(e) => setEntry(p.id, e)} /></div>
                         </li>
                       ))}
                     </ul>
@@ -153,12 +259,20 @@ export function MyBagView() {
             </>
           )}
 
-          <section className="glass rounded-3xl p-5">
-            <h2 className="font-display text-xl flex items-center gap-2"><GitCompare size={18} /> Comparateur</h2>
-            {cmpProducts.length < 2 ? (
-              <p className="text-sm text-muted mt-2" role="status">Sélectionnez deux produits avec « Comparer » ({cmpProducts.length}/2).</p>
-            ) : (
-              <div className="mt-3"><Compare a={cmpProducts[0]} b={cmpProducts[1]} /></div>
+          <LayerCompatibility products={items} context="votre trousse" />
+
+          <section className="glass rounded-3xl p-5" aria-labelledby="duel-title">
+            <h2 id="duel-title" className="font-display text-xl flex items-center gap-2"><Swords size={18} /> Comparer côte à côte</h2>
+            <p className="text-sm text-muted mt-1" role="status">
+              {cmpProducts.length < 2
+                ? `Sélectionnez 2 ou 3 produits avec « Duel », dans la trousse ou la wishlist (${cmpProducts.length}/3).`
+                : `${cmpProducts.length} produits sélectionnés : ${cmpProducts.map((p) => p.name).join(', ')}.`}
+            </p>
+            {cmpProducts.length >= 2 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                <button type="button" className="btn btn-primary" aria-haspopup="dialog" onClick={() => setDuelOpen(true)}><Swords size={15} /> Lancer le duel</button>
+                <button type="button" className="btn btn-ghost" onClick={() => setCmp([])}>Vider la sélection</button>
+              </div>
             )}
           </section>
         </div>
@@ -185,12 +299,13 @@ export function MyBagView() {
             ) : (
               <ul className="mt-3 divide-y divide-line">
                 {wished.map((p) => (
-                  <li key={p.id} className="py-2.5 flex items-center gap-2">
+                  <li key={p.id} className="py-2.5 flex flex-wrap items-center gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="text-[11px] text-muted truncate">{brandName(p.brand)}</p>
                       <p className="text-sm truncate">{p.name}</p>
                     </div>
                     <span className="font-mono text-xs">{euro(p.price)}</span>
+                    <CmpButton p={p} active={cmp.includes(p.id)} onToggle={() => toggleCmp(p.id)} />
                     {!bag.includes(p.id) && (
                       <button type="button" onClick={() => toggleBag(p.id)} className="grid place-items-center size-8 rounded-full bg-ink text-bg" aria-label={`Ajouter ${p.name} à la trousse`}><ShoppingBag size={12} /></button>
                     )}
@@ -200,8 +315,22 @@ export function MyBagView() {
               </ul>
             )}
           </section>
+
+          <section className="glass rounded-3xl p-5 text-sm">
+            <h2 className="font-display text-xl flex items-center gap-2"><Timer size={18} /> Rappels d'hygiène</h2>
+            <ul className="mt-2 space-y-1.5 text-muted list-disc pl-5">
+              <li>Mascara et eyeliner liquide : 3 mois, même s'ils ne sont pas secs.</li>
+              <li>Éponges : à remplacer tous les 3 mois, à laver chaque semaine.</li>
+              <li>Ne partagez jamais mascara, crayon yeux ou gloss.</li>
+              <li>Odeur ou texture qui change : jetez, quelle que soit la date.</li>
+            </ul>
+          </section>
         </aside>
       </div>
+
+      <Sheet open={duelOpen && cmpProducts.length >= 2} onClose={() => setDuelOpen(false)} title="Duel de produits">
+        <Duel items={cmpProducts} />
+      </Sheet>
     </div>
   );
 }

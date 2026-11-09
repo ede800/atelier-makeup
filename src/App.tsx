@@ -1,4 +1,4 @@
-import { Moon, Search, ShoppingBag, Sun, Trophy, Wand2, Repeat, Library, Palette } from 'lucide-react';
+import { Moon, Search, ShoppingBag, Sun, Trophy, Wand2, Repeat, Library, Palette, Target } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { SearchPalette } from './components/SearchPalette';
 import { useStore, type ViewId } from './lib/store';
@@ -8,16 +8,18 @@ import { DupeFinderView } from './views/DupeFinderView';
 import { BrandDirectoryView } from './views/BrandDirectoryView';
 import { MasterclassView } from './views/MasterclassView';
 import { MyBagView } from './views/MyBagView';
+import { ShadeMatcherView } from './views/ShadeMatcherView';
 import { PRODUCTS } from './data/products';
 import { BRANDS } from './data/brands';
 import { CATEGORIES } from './data/categories';
 import { DUPES } from './data/dupes';
 
 const NAV: { id: ViewId; label: string; short: string; icon: typeof Trophy }[] = [
-  { id: 'tier', label: 'Le Grand Ranking', short: 'Ranking', icon: Trophy },
-  { id: 'routine', label: 'Générateur de Trousse', short: 'Trousse', icon: Wand2 },
-  { id: 'dupes', label: 'Radar à Dupes', short: 'Dupes', icon: Repeat },
-  { id: 'brands', label: 'Encyclopédie', short: 'Marques', icon: Library },
+  { id: 'tier', label: 'Ranking', short: 'Ranking', icon: Trophy },
+  { id: 'routine', label: 'Générateur', short: 'Trousse', icon: Wand2 },
+  { id: 'shades', label: 'Teintes', short: 'Teintes', icon: Target },
+  { id: 'dupes', label: 'Dupes', short: 'Dupes', icon: Repeat },
+  { id: 'brands', label: 'Marques', short: 'Marques', icon: Library },
   { id: 'masterclass', label: 'Masterclass', short: 'Guide', icon: Palette },
 ];
 
@@ -110,6 +112,7 @@ export default function App() {
       <main id="contenu" tabIndex={-1} className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 py-8 sm:py-12 outline-none" key={nav.view}>
         {nav.view === 'tier' && <TierListView param={nav.param} />}
         {nav.view === 'routine' && <RoutineBuilderView />}
+        {nav.view === 'shades' && <ShadeMatcherView />}
         {nav.view === 'dupes' && <DupeFinderView />}
         {nav.view === 'brands' && <BrandDirectoryView param={nav.param} />}
         {nav.view === 'masterclass' && <MasterclassView />}
@@ -141,6 +144,7 @@ export default function App() {
 const TITLES: Record<ViewId, string> = {
   tier: 'Le Grand Ranking & Tier-List',
   routine: 'Générateur de Trousse',
+  shades: 'Convertisseur de Teintes',
   dupes: 'Radar à Dupes',
   brands: 'Encyclopédie des Marques',
   masterclass: 'Masterclass',

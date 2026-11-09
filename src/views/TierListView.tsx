@@ -6,6 +6,7 @@ import { PRODUCTS, productsByCategory, totalScore } from '../data/products';
 import type { PriceLevel, Product, SkinType, Tier } from '../data/types';
 import { LEVEL_LABELS, SKIN_LABELS, TIER_META, euro, priceLevel } from '../lib/helpers';
 import { useStore } from '../lib/store';
+import { detailsOf } from '../data/product-details';
 import { BrandLogo, ProductActions, ProductCard, ScoreBars, ScoreRing, SectionTitle, TierBadge } from '../components/ui';
 
 const TIERS: Tier[] = ['S', 'A', 'B', 'Surcote'];
@@ -125,6 +126,8 @@ export function TierListView({ param }: { param?: string }) {
   const [tierFilter, setTierFilter] = useState<Tier | 'all'>('all');
   const [levelFilter, setLevelFilter] = useState<PriceLevel | 'all'>('all');
   const [skinFilter, setSkinFilter] = useState<SkinType | 'all'>(profile.skin ?? 'all');
+  const [acneOnly, setAcneOnly] = useState(false);
+  const [ffOnly, setFfOnly] = useState(false);
 
   useEffect(() => {
     if (!highlightId) return;
@@ -132,6 +135,8 @@ export function TierListView({ param }: { param?: string }) {
     setTierFilter('all');
     setLevelFilter('all');
     setSkinFilter('all');
+    setAcneOnly(false);
+    setFfOnly(false);
     const t = setTimeout(() => {
       const el = document.getElementById(`p-${highlightId}`);
       el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -145,8 +150,10 @@ export function TierListView({ param }: { param?: string }) {
       .filter((p) => tierFilter === 'all' || p.tier === tierFilter)
       .filter((p) => levelFilter === 'all' || priceLevel(p) === levelFilter)
       .filter((p) => skinFilter === 'all' || p.skin.includes(skinFilter))
+      .filter((p) => !acneOnly || detailsOf(p).acneSafe === true)
+      .filter((p) => !ffOnly || detailsOf(p).fragranceFree === true)
       .sort((a, b) => totalScore(b) - totalScore(a));
-  }, [catId, tierFilter, levelFilter, skinFilter]);
+  }, [catId, tierFilter, levelFilter, skinFilter, acneOnly, ffOnly]);
 
   const byTier = TIERS.map((t) => ({ t, list: products.filter((p) => p.tier === t) })).filter((g) => g.list.length);
 
@@ -216,6 +223,11 @@ export function TierListView({ param }: { param?: string }) {
                   options={[{ v: 'all', label: 'Tous budgets' }, ...LEVELS.map((l) => ({ v: l, label: LEVEL_LABELS[l].label }))]} />
                 <FilterGroup label="Filtrer par type de peau" value={skinFilter} onChange={setSkinFilter}
                   options={[{ v: 'all', label: 'Toutes peaux' }, ...(Object.keys(SKIN_LABELS) as SkinType[]).map((s) => ({ v: s, label: SKIN_LABELS[s] }))]} />
+                <div role="group" aria-label="Peaux sensibles et acnéiques" className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                  <button type="button" className="chip" data-active={acneOnly} aria-pressed={acneOnly} onClick={() => setAcneOnly(!acneOnly)}>Non comédogène / acné-safe</button>
+                  <button type="button" className="chip" data-active={ffOnly} aria-pressed={ffOnly} onClick={() => setFfOnly(!ffOnly)}>Sans parfum</button>
+                </div>
+                {(acneOnly || ffOnly) && <p className="text-[11.5px] text-muted">Selon les allégations publiées par les marques ; les produits sans information sont masqués.</p>}
                 <p className="sr-only" role="status" aria-live="polite">{products.length} produit{products.length > 1 ? 's' : ''} affiché{products.length > 1 ? 's' : ''}</p>
               </div>
 

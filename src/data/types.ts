@@ -53,6 +53,7 @@ export interface Brand {
   legends: [string, string, string];
   flops: string;
   shops: string[];
+  proVerdict?: string;
 }
 
 export interface DupeSide {

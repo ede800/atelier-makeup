@@ -7,6 +7,7 @@ import { BUDGETS, FINISHES, buildRoutine, type BudgetId, type FinishId } from '.
 import { LEVEL_LABELS, SKIN_LABELS, euro } from '../lib/helpers';
 import { usePersistent, useStore } from '../lib/store';
 import { BrandLogo, ProductActions, ScoreRing, SectionTitle, TierBadge } from '../components/ui';
+import { LayerCompatibility } from '../components/LayerCompatibility';
 
 const ROLE_UI = {
   invest: { label: 'Investir', icon: TrendingUp, cls: 'bg-gold/20 text-gold-ink' },
@@ -79,6 +80,7 @@ export function RoutineBuilderView() {
               ))}
             </div>
           </Step>
+          <LayerCompatibility products={routine.items.map((i) => i.product)} context="la trousse" />
         </div>
 
         <section className="min-w-0" aria-labelledby="result-title">

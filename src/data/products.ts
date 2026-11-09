@@ -1,4 +1,5 @@
 import type { PriceLevel, Product, SkinType, Tier } from './types';
+import { PRODUCTS_EXTRA } from './products-extra';
 
 /*
  * Prix indicatifs constatés en France (Sephora, Nocibé, Marionnaud, pharmacies, Monoprix, sites des marques).
@@ -29,7 +30,7 @@ function p(
   };
 }
 
-export const PRODUCTS: Product[] = [
+const BASE_PRODUCTS: Product[] = [
   // ——— BASES LUMINEUSES
   p('embryolisse-lait-creme', 'primer-glow', 'embryolisse', 'Lait-Crème Concentré', 14.9, '75 ml', 'S', [78, 80, 95, 98], 'snxm', 'Rosé lumineux', "La base secrète des backstages depuis 1950 : hydrate, repulpe et fait tenir n'importe quel fond de teint. Imbattable au ml.", 'budget'),
   p('elf-halo-glow', 'primer-glow', 'elf', 'Halo Glow Liquid Filter', 16, '31,5 ml', 'A', [74, 88, 86, 92], 'snm', 'Glow flouté', "Le célèbre dupe du Flawless Filter : seul, en base ou mélangé au teint. 16 teintes."),
@@ -261,6 +262,8 @@ export const PRODUCTS: Product[] = [
   p('mac-217s', 'tools', 'mac', '217S Blending Brush', 31, '1 pinceau', 'A', [90, 88, 88, 78], 'gsnxm', 'Pinceau yeux', "L'estompeur de paupières de référence de tous les maquilleurs professionnels depuis 30 ans."),
   p('hourglass-vanish-brush', 'tools', 'hourglass', 'Vanish Seamless Finish Foundation Brush', 66, '1 pinceau', 'A', [92, 94, 92, 60], 'gsnxm', 'Pinceau teint', "Fibres taklon ultra-denses et biseautées : le pinceau de teint le plus luxueux, une vraie seconde peau.", 'luxe'),
 ];
+
+export const PRODUCTS: Product[] = [...BASE_PRODUCTS, ...PRODUCTS_EXTRA];
 
 export const productById = (id: string) => PRODUCTS.find((pr) => pr.id === id);
 
