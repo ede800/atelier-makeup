@@ -20,15 +20,14 @@ const ALT = {
   dasique: ['dasique.co.kr', 'dasique.com'],
   espoir: ['espoir.co.kr', 'espoir.com'],
   amuse: ['amuse.kr', 'amusemakeup.com'],
-  ardell: ['ardellshop.com'],
-  sensai: ['www.sensai-cosmetics.com', 'sensai.com', 'uk.sensai-cosmetics.com', 'kanebo-global.com'],
-  suqqu: ['suqqu.co.uk', 'suqqu.jp'],
   rcma: ['www.rcmamakeup.com', 'rcmamakeup.net'],
   zoeva: ['zoevacosmetics.com', 'zoeva.de'],
   spectrum: ['www.spectrumcollections.com', 'spectrumcollections.co.uk'],
-  mua: ['muastore.co.uk', 'makeupacademy.co.uk'],
 };
 const NO_SITE = new Set(['duo']); // pas de site propre : monogramme
+// Vérifié dans Chrome : le site officiel ne publie qu'une icône de 16 px (Sensai), une icône .ico (Suqqu)
+// ou aucune icône (Clio). Les services d'icônes renvoient alors le logo d'une autre marque ou une image pixelisée.
+const NO_LOGO = new Set(['sensai', 'suqqu', 'clio']);
 
 const UA = { 'user-agent': 'Mozilla/5.0 (compatible; AtelierMakeupLogos/1.0)', accept: '*/*' };
 
@@ -99,7 +98,7 @@ const files = {};
 const byHash = new Map();
 const missing = [];
 for (const [id, domain] of Object.entries(domains)) {
-  if (NO_SITE.has(id)) continue;
+  if (NO_SITE.has(id) || NO_LOGO.has(id)) continue;
   let found = null;
   for (const d of [domain, ...(ALT[id] ?? [])]) {
     found = await fetchLogo(d);
