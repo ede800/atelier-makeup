@@ -7,6 +7,7 @@ import type { Product, Scores, Tier } from '../data/types';
 import { LEVEL_LABELS, SKIN_LABELS, TIER_META, euro, priceLevel } from '../lib/helpers';
 import { BASE_LABELS, detailsOf, pricePer10 } from '../data/product-details';
 import { useStore } from '../lib/store';
+import { logoPalette, type LogoPalette } from '../lib/logoPalette';
 
 const LOGO_FILES = LOGOS as Record<string, string>;
 
@@ -34,18 +35,30 @@ export function BrandLogo({ brand, size = 32, label }: { brand: string; size?: n
       </span>
     );
   }
+  return <LogoTile src={`${import.meta.env.BASE_URL}logos/${file}`} alt={alt} size={size} onError={() => setFailed(true)} />;
+}
+
+/** Cadre du logo : prend la couleur de fond du logo (plus de liseré blanc) ou une bordure de sa couleur dominante. */
+function LogoTile({ src, alt, size, onError }: { src: string; alt: string; size: number; onError: () => void }) {
+  const [pal, setPal] = useState<LogoPalette>({});
+  useEffect(() => {
+    let alive = true;
+    logoPalette(src).then((p) => alive && setPal(p));
+    return () => { alive = false; };
+  }, [src]);
+  const filled = !!pal.edge;
+  const ring = Math.max(1.5, Math.round(size / 22));
   return (
-    <span className="shrink-0 grid place-items-center rounded-lg border border-line bg-white overflow-hidden" style={box}>
-      <img
-        src={`${import.meta.env.BASE_URL}logos/${file}`}
-        alt={alt}
-        width={size}
-        height={size}
-        loading="lazy"
-        decoding="async"
-        onError={() => setFailed(true)}
-        className="size-[78%] object-contain"
-      />
+    <span
+      className="shrink-0 grid place-items-center rounded-lg overflow-hidden transition-colors"
+      style={{
+        width: size, height: size,
+        background: pal.edge ?? '#ffffff',
+        boxShadow: `inset 0 0 0 ${filled ? 1 : ring}px ${filled ? 'rgba(0,0,0,0.06)' : pal.dominant ?? 'var(--line)'}`,
+      }}
+    >
+      <img src={src} alt={alt} width={size} height={size} loading="lazy" decoding="async" onError={onError}
+        className={filled ? 'size-full object-cover' : 'size-[74%] object-contain'} />
     </span>
   );
 }
@@ -87,7 +100,7 @@ const SCORE_LABELS: Record<keyof Scores, string> = {
 
 export function ScoreBars({ scores, compact }: { scores: Scores; compact?: boolean }) {
   return (
-    <dl className={`grid ${compact ? 'grid-cols-2 gap-x-3 gap-y-1' : 'gap-1.5'}`}>
+    <dl className={`grid min-w-0 ${compact ? 'gap-1' : 'gap-1.5'}`}>
       {(Object.keys(SCORE_LABELS) as (keyof Scores)[]).map((k) => (
         <div key={k} className="flex items-center gap-2 text-[11px]">
           <dt className="w-[5.5rem] shrink-0 text-muted">{SCORE_LABELS[k]}</dt>
@@ -142,7 +155,7 @@ export function ProductCard({ p, highlight, showScores = true, headingLevel = 4 
       id={`p-${p.id}`}
       tabIndex={-1}
       aria-labelledby={`t-${p.id}`}
-      className={`glass rounded-2xl p-4 flex flex-col gap-3 transition hover:-translate-y-0.5 ${highlight ? 'ring-2 ring-gold' : ''}`}
+      className={`glass rounded-2xl p-4 flex flex-col gap-3 min-w-0 w-full transition hover:-translate-y-0.5 ${highlight ? 'ring-2 ring-gold' : ''}`}
     >
       <header className="flex items-start gap-3">
         <ScoreRing value={totalScore(p)} />
@@ -151,7 +164,7 @@ export function ProductCard({ p, highlight, showScores = true, headingLevel = 4 
             <BrandLogo brand={p.brand} size={18} />
             <span className="truncate">{brandName(p.brand)}</span>
           </p>
-          <H id={`t-${p.id}`} className="font-display text-[1.05rem] leading-snug">{p.name}</H>
+          <H id={`t-${p.id}`} className="font-display text-[1.05rem] leading-snug break-words hyphens-auto">{p.name}</H>
         </div>
         <TierBadge tier={p.tier} />
       </header>

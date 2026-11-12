@@ -169,7 +169,7 @@ export function TierListView({ param }: { param?: string }) {
       </div>
 
       {mode === 'all' ? <AllPodiums /> : (
-        <div className="grid lg:grid-cols-[260px_1fr] gap-8">
+        <div className="grid lg:grid-cols-[260px_minmax(0,1fr)] gap-8">
           <aside className="lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto no-scrollbar">
             <div className="lg:hidden">
               <label className="text-[11px] uppercase tracking-wider text-muted" htmlFor="cat-select">Catégorie</label>
@@ -249,15 +249,15 @@ export function TierListView({ param }: { param?: string }) {
 function TierRow({ tier, list, highlightId }: { tier: Tier; list: Product[]; highlightId?: string }) {
   const m = TIER_META[tier];
   return (
-    <section aria-labelledby={`tier-${tier}`} className="grid sm:grid-cols-[88px_1fr] gap-3 fade-up">
+    <section aria-labelledby={`tier-${tier}`} className="grid sm:grid-cols-[88px_minmax(0,1fr)] gap-3 fade-up">
       <div className={`${m.cls} rounded-2xl flex sm:flex-col items-center justify-center gap-2 p-3 sm:min-h-32`}>
         <span aria-hidden="true" className="font-display text-2xl sm:text-4xl font-semibold">{tier === 'Surcote' ? '✕' : tier}</span>
         <h4 id={`tier-${tier}`} className="text-[10px] uppercase tracking-wider font-semibold text-center leading-tight">
           {m.label}<span className="sr-only"> — {m.desc} ({list.length})</span>
         </h4>
       </div>
-      <ul className="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
-        {list.map((p) => <li key={p.id} className="flex"><div className="flex-1 flex flex-col [&>article]:flex-1"><ProductCard p={p} highlight={p.id === highlightId} headingLevel={5} /></div></li>)}
+      <ul className="grid md:grid-cols-2 xl:grid-cols-3 gap-3 min-w-0">
+        {list.map((p) => <li key={p.id} className="flex min-w-0"><div className="flex-1 min-w-0 flex flex-col [&>article]:flex-1"><ProductCard p={p} highlight={p.id === highlightId} headingLevel={5} /></div></li>)}
       </ul>
     </section>
   );

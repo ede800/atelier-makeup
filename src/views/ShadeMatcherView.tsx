@@ -45,7 +45,7 @@ export function ShadeMatcherView() {
         <button type="button" className="chip" data-active={mode === 'skin'} aria-pressed={mode === 'skin'} onClick={() => setMode('skin')}>Je décris ma peau</button>
       </div>
 
-      <div className="grid lg:grid-cols-[360px_1fr] gap-8">
+      <div className="grid lg:grid-cols-[360px_minmax(0,1fr)] gap-8">
         <div className="glass rounded-3xl p-5 space-y-5 lg:self-start lg:sticky lg:top-24">
           {mode === 'owned' ? (
             <>
@@ -123,7 +123,7 @@ export function ShadeMatcherView() {
                   const s = idx >= 0 ? l.shades[idx] : null;
                   const isSource = mode === 'owned' && l.id === lineId;
                   return (
-                    <li key={l.id} className={`glass rounded-2xl p-3 flex items-center gap-3 ${isSource ? 'ring-2 ring-gold' : ''}`}>
+                    <li key={l.id} className={`glass rounded-2xl p-3 flex items-center gap-3 min-w-0 ${isSource ? 'ring-2 ring-gold' : ''}`}>
                       <BrandLogo brand={l.brand} size={34} />
                       <div className="min-w-0 flex-1">
                         <p className="text-[11px] uppercase tracking-wider text-muted truncate">{brandName(l.brand)}</p>
@@ -131,7 +131,7 @@ export function ShadeMatcherView() {
                           <a href={`#/tier/${productCat(l.productId)}~${l.productId}`} className="text-sm font-medium hover:underline block truncate">{l.name}</a>
                         ) : <p className="text-sm font-medium truncate">{l.name}</p>}
                       </div>
-                      <span className={`font-mono text-sm font-semibold text-right ${s ? '' : 'text-muted'}`}>
+                      <span className={`font-mono text-sm font-semibold text-right max-w-[45%] break-words ${s ? '' : 'text-muted'}`}>
                         {s ?? <span className="text-xs font-normal">Pas de teinte</span>}
                         {isSource && <span className="block text-[10px] font-normal text-gold-ink">votre teinte</span>}
                       </span>
