@@ -7,7 +7,7 @@ import { PRODUCTS, totalScore } from '../data/products';
 import type { MarketTier } from '../data/types';
 import { euro, normalize } from '../lib/helpers';
 import { useStore } from '../lib/store';
-import { BrandLogo, ProductActions, SectionTitle, Sheet, TierBadge } from '../components/ui';
+import { BrandWordmark, ProductActions, SectionTitle, Sheet, TierBadge } from '../components/ui';
 
 const SITES = DOMAINS as Record<string, string>;
 const NO_OFFICIAL_SITE = new Set(['duo']);
@@ -60,16 +60,12 @@ export function BrandDirectoryView({ param }: { param?: string }) {
               <li key={b.id} className="flex">
                 <button type="button" onClick={() => navigate('brands', b.id)} aria-haspopup="dialog"
                   className="flex-1 glass rounded-2xl p-4 text-left transition hover:-translate-y-0.5 hover:border-gold/50 fade-up">
-                  <span className="flex items-start gap-3">
-                    <BrandLogo brand={b.id} size={44} />
-                    <span className="min-w-0 flex-1">
-                      <span className="flex justify-between items-start gap-2">
-                        <span className="font-display text-lg leading-tight">{b.name}</span>
-                        <span className="font-mono text-[11px] text-gold-ink shrink-0">{b.priceRange}</span>
-                      </span>
-                      <span className="block text-[11px] text-muted mt-0.5">{b.country}</span>
-                    </span>
+                  <span className="flex justify-between items-start gap-2">
+                    <BrandWordmark brand={b.id} height={44} maxWidth={150} />
+                    <span className="font-mono text-[11px] text-gold-ink shrink-0 pt-1">{b.priceRange}</span>
                   </span>
+                  <span className="block font-display text-lg leading-tight mt-3">{b.name}</span>
+                  <span className="block text-[11px] text-muted mt-0.5">{b.country}</span>
                   <span className="block text-[13px] mt-3"><span className="text-muted">Spécialité :</span> {b.specialty}</span>
                 </button>
               </li>
@@ -83,7 +79,7 @@ export function BrandDirectoryView({ param }: { param?: string }) {
         {open && (
           <article className="p-6 sm:p-8" aria-labelledby="brand-title">
             <div className="flex items-center gap-4 pr-12">
-              <BrandLogo brand={open.id} size={64} label />
+              <BrandWordmark brand={open.id} height={64} maxWidth={220} label />
               <div>
                 <p className="text-[11px] uppercase tracking-[0.2em] text-gold-ink font-semibold"><span aria-hidden="true">{MARKET_TIERS[open.tier].emoji} </span>{MARKET_TIERS[open.tier].label}</p>
                 <h2 id="brand-title" className="font-display text-3xl sm:text-4xl mt-1">{open.name}</h2>

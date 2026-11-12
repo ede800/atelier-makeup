@@ -6,6 +6,8 @@
 export interface LogoPalette {
   edge?: string;
   dominant?: string;
+  /** Logo majoritairement clair (blanc, crème) : à afficher sur fond sombre. */
+  light?: boolean;
 }
 
 const cache = new Map<string, Promise<LogoPalette>>();
@@ -54,7 +56,15 @@ function analyze(data: Uint8ClampedArray): LogoPalette {
   }
   const top = buckets.reduce((a, b) => (b.n > a.n ? b : a));
   const dominant = total && top.n / total > 0.04 ? hex(top.r / top.n, top.g / top.n, top.b / top.n) : undefined;
-  return { edge: edgeColor, dominant: dominant ?? edgeColor };
+  let lum = 0, op = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] < 200) continue;
+    op++;
+    lum += (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]) / 255;
+  }
+  // Seuls les logos détourés (fond transparent) peuvent être « clairs » : un JPEG sur fond blanc ne l'est pas.
+  const light = op > 0 && op / (N * N) < 0.85 && lum / op > 0.86 && !edgeColor;
+  return { edge: edgeColor, dominant: dominant ?? edgeColor, light };
 }
 
 export function logoPalette(src: string): Promise<LogoPalette> {

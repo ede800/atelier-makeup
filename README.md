@@ -33,3 +33,5 @@ Objectif : WCAG 2.2 niveau AA (référentiel RGAA). Mis en place :
 - Boutons à bascule (`aria-pressed`), page courante (`aria-current`), annonces des résultats de filtres et des notifications (`aria-live`).
 - Contrastes de texte ≥ 4,5:1 (≥ 3:1 pour les grands titres) en mode clair et sombre, `prefers-reduced-motion` respecté, emojis et icônes décoratifs masqués aux lecteurs d'écran, tableaux avec en-têtes et légendes.
 - Vérifié avec axe-core (`wcag2a`, `wcag2aa`, `wcag21aa`, `wcag22aa`, bonnes pratiques) : 0 violation sur toutes les vues et les 8 onglets de la masterclass, en clair et en sombre.
+
+Logos horizontaux : `public/wordmarks/` (manifeste `src/data/wordmarks.json`). Ils viennent de l'en-tête des sites officiels (relevés dans Chrome) ou de Wikimedia Commons, et remplacent sur les cartes et fiches de marque les icônes que les marques ne publient qu'en 32 px.

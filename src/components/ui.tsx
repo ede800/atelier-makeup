@@ -2,6 +2,7 @@ import { Heart, ShoppingBag, Check, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { brandById, brandName } from '../data/brands';
 import LOGOS from '../data/logos.json';
+import WORDMARKS from '../data/wordmarks.json';
 import { totalScore } from '../data/products';
 import type { Product, Scores, Tier } from '../data/types';
 import { LEVEL_LABELS, SKIN_LABELS, TIER_META, euro, priceLevel } from '../lib/helpers';
@@ -10,6 +11,35 @@ import { useStore } from '../lib/store';
 import { logoPalette, type LogoPalette } from '../lib/logoPalette';
 
 const LOGO_FILES = LOGOS as Record<string, string>;
+const WORDMARK_FILES = WORDMARKS as Record<string, string>;
+
+export const hasWordmark = (brand: string) => !!WORDMARK_FILES[brand];
+
+/**
+ * Logo horizontal officiel (net en toute taille) pour les cartes et fiches de marque.
+ * Sur fond sombre si le logo est clair ; sinon on retombe sur le logo carré.
+ */
+export function BrandWordmark({ brand, height = 40, maxWidth = 150, label }: { brand: string; height?: number; maxWidth?: number; label?: boolean }) {
+  const file = WORDMARK_FILES[brand];
+  const [pal, setPal] = useState<LogoPalette>({});
+  const [failed, setFailed] = useState(false);
+  const src = file ? `${import.meta.env.BASE_URL}wordmarks/${file}` : '';
+  useEffect(() => {
+    if (!src) return;
+    let alive = true;
+    logoPalette(src).then((p) => alive && setPal(p));
+    return () => { alive = false; };
+  }, [src]);
+  if (!file || failed) return <BrandLogo brand={brand} size={height} label={label} />;
+  const name = brandById(brand)?.name ?? brand;
+  return (
+    <span className="shrink-0 inline-grid place-items-center rounded-lg px-2.5"
+      style={{ height, maxWidth, minWidth: height, background: pal.light ? '#1d1a19' : '#ffffff', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.08)' }}>
+      <img src={src} alt={label ? `Logo ${name}` : ''} loading="lazy" decoding="async" onError={() => setFailed(true)}
+        className="block object-contain" style={{ height: height - 16, width: "auto", maxWidth: maxWidth - 20 }} />
+    </span>
+  );
+}
 
 /**
  * Logo de marque hébergé avec le site (public/logos), avec monogramme de secours.
